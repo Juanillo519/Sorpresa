@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para ti ❤️</title>
+<style>
+:root{
+  --bg:#0f0d12; --card:#18151d; --text:#f8f3f6; --muted:#bdb4bd;
+  --accent:#e8a6bd; --accent2:#f4d7e2; --danger:#8f6877;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; font-family:Georgia, "Times New Roman", serif;
+  color:var(--text); background:
+  radial-gradient(circle at 20% 10%, #34202b 0, transparent 35%),
+  radial-gradient(circle at 90% 90%, #271c30 0, transparent 35%), var(--bg);
+  overflow-x:hidden;
+}
+.screen{min-height:100vh;display:none;align-items:center;justify-content:center;padding:28px 18px}
+.screen.active{display:flex}
+.card{width:min(720px,100%);background:rgba(24,21,29,.88);border:1px solid rgba(255,255,255,.1);
+  border-radius:28px;padding:34px 24px;box-shadow:0 25px 80px rgba(0,0,0,.35);text-align:center;backdrop-filter:blur(10px)}
+.kicker{font:600 12px/1.2 Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(36px,8vw,68px);margin:15px 0 12px;line-height:1.02}
+h2{font-size:clamp(28px,6vw,44px);margin:12px 0 18px}
+p{font-size:18px;line-height:1.7;color:var(--muted)}
+button{
+  border:0;border-radius:999px;padding:14px 23px;background:var(--accent);color:#24151d;
+  font-weight:700;font-size:15px;cursor:pointer;margin:8px;transition:.2s transform,.2s filter;
+}
+button:hover{transform:translateY(-2px);filter:brightness(1.06)}
+button.secondary{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.18)}
+.box{font-size:105px;animation:float 2.5s ease-in-out infinite;display:inline-block}
+@keyframes float{50%{transform:translateY(-9px) rotate(2deg)}}
+.photo{width:100%;max-height:430px;object-fit:cover;border-radius:20px;margin:12px 0 8px;border:1px solid rgba(255,255,255,.1)}
+.caption{font-size:14px;color:#aaa}
+.options{display:grid;grid-template-columns:1fr;gap:10px;margin:20px auto;max-width:500px}
+.options button{margin:0;background:#24202a;color:var(--text);border:1px solid rgba(255,255,255,.1)}
+.options button:hover{background:#302936}
+.feedback{min-height:28px;font-weight:700;color:var(--accent2)}
+input{
+ width:min(430px,100%);padding:15px 18px;border-radius:14px;border:1px solid rgba(255,255,255,.18);
+ background:#100e14;color:white;font-size:18px;text-align:center;outline:none
+}
+.memory-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.memory-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px}
+.reason{background:#211c26;border-radius:18px;padding:18px;margin:10px 0;text-align:left}
+.number{font:700 12px Arial;color:var(--accent);letter-spacing:.18em}
+.final{font-size:20px;line-height:1.9;color:#eee;text-align:left}
+.signature{margin-top:25px;text-align:right;color:var(--accent2);font-style:italic}
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);transition:width .4s;z-index:10}
+.small{font-size:13px;color:#918793}
+#musicBtn{position:fixed;right:14px;bottom:14px;z-index:20;padding:10px 15px;font-size:12px}
+.hidden{display:none!important}
+.heart{position:fixed;pointer-events:none;animation:rise 2.2s ease-out forwards;font-size:22px}
+@keyframes rise{to{transform:translateY(-150px) scale(1.5);opacity:0}}
+@media(max-width:560px){.card{padding:28px 18px}.memory-grid{grid-template-columns:1fr 1fr}.memory-grid img:last-child{display:none}}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!--
+========================
+  EDITA SOLO ESTA ZONA
+========================
+-->
+<script>
+const CONFIG = {
+  nombreElla: "Nerea",
+  nombreTuyo: "David",
+  apodo: "Cuchufleta",
+  fechaEspecial: "19/02/2026",
+
+  // Fotos: mete tus imágenes dentro de la carpeta /assets y escribe aquí sus nombres.
+  fotos: {
+    portada: "foto1.jpeg",
+    recuerdo: "foto2.jpeg",
+    galeria1: "foto3.jpeg",
+    galeria2: "foto4.jpeg",
+    galeria3: "foto5.jpeg"
+  },
+
+  // Música: mete un MP3 dentro de /assets y escribe su nombre aquí.
+  musica: "cancion.mp4",
+
+  // Pregunta 1
+  pregunta1: "¿Cómo te abrí por instagram?",
+  respuestas1: [
+    "Te gustó el outfit no?",
+    "Le sabes a los buenos outfits no?",
+    "Si que le sabes a los outfits"
+  ],
+  correcta1: 1,
+
+  // Contraseña/palabra interna
+  palabraSecreta: "Bizcochito",
+
+  // Pregunta 2
+  pregunta2: "¿Qué estábamos haciendo cuando ocurrió esto?",
+  respuestas2: [
+    "Nos fuimos pa Telde",
+    "Nos fuimos pa Machu Pichu",
+    "Nos fuimos pal Teide"
+  ],
+  correcta2: 2,
+
+  // 3 cosas concretas que amas/valoras de ella
+  razones: [
+    "La forma en que me miras.",
+    "Lo cariñosa y atenta que eres conmigo.",
+    "Lo mucho que luchas por la relación."
+  ],
+
+  // Sorpresa final
+  sorpresaTitulo: "TU VERDADERA SORPRESA",
+  sorpresaTexto: "Quiero estar contigo para toda la vida.",
+  sorpresaFecha: "Pa siempre",
+  sorpresaHora: "A cualquier hora",
+  sorpresaLugar: "Juntos siempre",
+
+  // Mensaje final: puedes escribirlo entero o modificar el que viene.
+  carta: `Quería hacerte algo random.
+
+No hacía falta que fuera una fecha especial. Simplemente me apetecía sorprenderte con una bobería.
+
+De verdad que eres lo mas importante que tengo, haría todo lo posible por estar contigo hasta el final de los días. te amo con todo mi corazón
+
+y ojalá poder disfrutar contigo cada día hasta el último. Me haces muy feliz en serio, no se que haría sin ti, me alegro de haberte conocido. 
+
+Espero que te guste el detalle, te echo mucho de menos, aunque nos vayamos a ver menos esta época, un día nos veremos cada mañana y cada noche, 
+
+ojalá ese día llegue pronto. 
+${"Tu bizcochito"}, te amo muchísimo. ❤️`
+};
+</script>
+
+<audio id="music" loop preload="auto"></audio>
+<button id="musicBtn" class="secondary hidden">♫ Música</button>
+
+<section class="screen active" id="s1">
+  <div class="card">
+    <div class="kicker">Entrega especial</div>
+    <div class="box">📦</div>
+    <h1>Tienes un paquete.</h1>
+    <p>Hay algo dentro que preparé especialmente para ti.<br>Pero tendrás que ir descubriéndolo poco a poco.</p>
+    <button onclick="go(2)">🔓 Abrir paquete</button>
+    <p class="small">Para: <span id="toName"></span></p>
+  </div>
+</section>
+
+<section class="screen" id="s2">
+  <div class="card">
+    <div class="kicker">Nivel 1 · Memoria</div>
+    <h2>Primera prueba</h2>
+    <p id="q1"></p>
+    <div class="options" id="opts1"></div>
+    <div class="feedback" id="feed1"></div>
+    <button id="next1" class="hidden" onclick="go(3)">Continuar →</button>
+  </div>
+</section>
+
+<section class="screen" id="s3">
+  <div class="card">
+    <div class="kicker">Nivel 2 · Un recuerdo</div>
+    <h2>Hay momentos que se quedan.</h2>
+    <img class="photo" id="recuerdoImg" alt="Un recuerdo">
+    <p id="q2"></p>
+    <div class="options" id="opts2"></div>
+    <div class="feedback" id="feed2"></div>
+    <button id="next2" class="hidden" onclick="go(4)">Continuar →</button>
+  </div>
+</section>
+
+<section class="screen" id="s4">
+  <div class="card">
+    <div class="kicker">Nivel 3 · Mensaje bloqueado</div>
+    <h2>🔐 Una última cosa</h2>
+    <p>Necesitas una palabra para desbloquear lo que hay dentro.</p>
+    <input id="secret" placeholder="Escribe la palabra..." autocomplete="off">
+    <br>
+    <button onclick="unlock()">Desbloquear</button>
+    <div class="feedback" id="secretFeed"></div>
+  </div>
+</section>
+
+<section class="screen" id="s5">
+  <div class="card">
+    <div class="kicker">Desbloqueado</div>
+    <h2>❤️ Para ti, <span id="name5"></span></h2>
+    <div class="memory-grid">
+      <img id="g1" alt=""><img id="g2" alt=""><img id="g3" alt="">
+    </div>
+    <p>Hay recuerdos que no necesitan una gran historia para ser importantes.</p>
+    <button onclick="go(6)">Tengo algo que decirte →</button>
+  </div>
+</section>
+
+<section class="screen" id="s6">
+  <div class="card">
+    <div class="kicker">Y ahora sí...</div>
+    <h2>Unas palabras para ti</h2>
+    <div id="reasons"></div>
+    <button onclick="go(7)">Leer el mensaje final →</button>
+  </div>
+</section>
+
+<section class="screen" id="s7">
+  <div class="card">
+    <div class="kicker">Última parte</div>
+    <h2>💌</h2>
+    <div class="final" id="letter"></div>
+    <div class="signature" id="signature"></div>
+    <button onclick="go(8)">¿Y esto termina aquí? →</button>
+  </div>
+</section>
+
+<section class="screen" id="s8">
+  <div class="card">
+    <div class="kicker">Respuesta</div>
+    <h2>Obviamente no. 😌</h2>
+    <p>Todo esto era solo la primera parte.</p>
+    <div style="font-size:70px;margin:15px">🎁</div>
+    <h2 id="surpriseTitle"></h2>
+    <p id="surpriseText"></p>
+    <div class="reason">
+      <div class="number">CUÁNDO</div><p id="surpriseDate"></p>
+      <div class="number">HORA</div><p id="surpriseHour"></p>
+      <div class="number">DÓNDE</div><p id="surprisePlace"></p>
+    </div>
+    <p>Te espero. ❤️</p>
+    <button onclick="celebrate()">✨ Aceptar mi regalo</button>
+  </div>
+</section>
+
+<script>
+let current=1;
+
+function asset(name){ return "assets/" + name; }
+
+function init(){
+  document.getElementById("toName").textContent=CONFIG.nombreElla;
+  document.getElementById("name5").textContent=CONFIG.apodo || CONFIG.nombreElla;
+
+  document.getElementById("recuerdoImg").src=asset(CONFIG.fotos.recuerdo);
+  document.getElementById("g1").src=asset(CONFIG.fotos.galeria1);
+  document.getElementById("g2").src=asset(CONFIG.fotos.galeria2);
+  document.getElementById("g3").src=asset(CONFIG.fotos.galeria3);
+
+  document.getElementById("q1").textContent=CONFIG.pregunta1;
+  makeOptions("opts1",CONFIG.respuestas1,CONFIG.correcta1,"feed1","next1");
+
+  document.getElementById("q2").textContent=CONFIG.pregunta2;
+  makeOptions("opts2",CONFIG.respuestas2,CONFIG.correcta2,"feed2","next2");
+
+  document.getElementById("reasons").innerHTML=CONFIG.razones.map((x,i)=>
+    `<div class="reason"><div class="number">0${i+1}</div><p>${escapeHtml(x)}</p></div>`).join("");
+
+  document.getElementById("letter").innerHTML=escapeHtml(CONFIG.carta).replace(/\n/g,"<br>");
+  document.getElementById("signature").textContent="— " + CONFIG.nombreTuyo + " ❤️";
+
+  document.getElementById("surpriseTitle").textContent=CONFIG.sorpresaTitulo;
+  document.getElementById("surpriseText").textContent=CONFIG.sorpresaTexto;
+  document.getElementById("surpriseDate").textContent=CONFIG.sorpresaFecha;
+  document.getElementById("surpriseHour").textContent=CONFIG.sorpresaHora;
+  document.getElementById("surprisePlace").textContent=CONFIG.sorpresaLugar;
+
+  const audio=document.getElementById("music");
+  audio.src=asset(CONFIG.musica);
+  audio.volume=.35;
+
+  document.body.addEventListener("click",()=>{
+    audio.play().then(()=>document.getElementById("musicBtn").classList.remove("hidden")).catch(()=>{});
+  },{once:true});
+
+  document.getElementById("musicBtn").onclick=()=>{
+    if(audio.paused){audio.play();}else{audio.pause();}
+  };
+}
+function makeOptions(id,answers,correct,feedId,nextId){
+  const box=document.getElementById(id);
+  box.innerHTML="";
+  answers.forEach((a,i)=>{
+    const b=document.createElement("button");
+    b.textContent=a;
+    b.onclick=()=>{
+      const f=document.getElementById(feedId);
+      if(i===correct){
+        f.textContent="✓ Correcto. Sabía que lo recordarías.";
+        document.getElementById(nextId).classList.remove("hidden");
+        box.querySelectorAll("button").forEach(x=>x.disabled=true);
+      }else{
+        f.textContent="Mmm... no 😌. Inténtalo otra vez.";
+      }
+    };
+    box.appendChild(b);
+  });
+}
+function unlock(){
+  const val=document.getElementById("secret").value.trim().toLowerCase();
+  const wanted=CONFIG.palabraSecreta.trim().toLowerCase();
+  if(val===wanted){
+    document.getElementById("secretFeed").textContent="🔓 Desbloqueado.";
+    setTimeout(()=>go(5),500);
+  }else{
+    document.getElementById("secretFeed").textContent="Casi... piensa en esa palabra que solo nosotros usamos.";
+  }
+}
+function go(n){
+  document.getElementById("s"+current).classList.remove("active");
+  current=n;
+  document.getElementById("s"+current).classList.add("active");
+  document.getElementById("progress").style.width=((current-1)/7*100)+"%";
+  window.scrollTo(0,0);
+}
+function celebrate(){
+  for(let i=0;i<24;i++){
+    const h=document.createElement("div"); h.className="heart"; h.textContent=["❤️","💕","✨","💗"][i%4];
+    h.style.left=Math.random()*100+"vw"; h.style.bottom="10px";
+    h.style.animationDelay=Math.random()*.7+"s"; document.body.appendChild(h);
+    setTimeout(()=>h.remove(),2600);
+  }
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+init();
+</script>
+</body>
+</html>
